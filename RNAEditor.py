@@ -1,28 +1,25 @@
 #!/usr/bin/python
-
-'''
-    Created on May 17, 2013
-    Main Class to detect RNA-editing in a given FastQ file
-    @author: david
-'''
-
+"""
+Main Class to detect RNA-editing in a given FastQ file
+"""
 from createDiagrams import createDiagramms
 from Helper import Helper, Parameters
 from MapFastq import MapFastq
 from CallEditingSites import CallEditingSites
 import multiprocessing, argparse, os
 import traceback
-from PyQt4 import QtGui, QtCore
 import textwrap
 import sys
 import gc
 import subprocess
 
 
-class RnaEdit(QtCore.QThread):
+class RnaEdit: # (QtCore.QThread)
 
     def __init__(self, fastqFiles, params, textField, out_dir=None, out_base=None):
-        QtCore.QThread.__init__(self)
+
+        # QtCore.QThread.__init__(self)
+
         if isinstance(params, Parameters):
             self.params = params
         else:
@@ -332,31 +329,46 @@ if __name__ == '__main__':
                 run without arguments to start the user interface.
             '''))
 
-        parser.add_argument('-i', '--input', metavar='Fastq-Files',nargs='+', type=str, help='Input fastq files (maximum two for paired-end sequencing)', required=True)
+        parser.add_argument(
+            '-i', '--input',
+            metavar='Fastq-Files',
+            nargs='+',
+            type=str,
+            help='Input fastq files (maximum two for paired-end sequencing)',
+            required=True
+        )
 
-        parser.add_argument('-c', '--conf', metavar='Configuration File', type=str, help='Configuration File used to read Parameters for RnaEditor', required=True, default='configuration.txt')
+        parser.add_argument(
+            '-c', '--conf',
+            metavar='Configuration File',
+            type=str,
+            help='Configuration File used to read Parameters for RnaEditor',
+            required=True,
+            default='configuration.txt')
 
-        parser.add_argument('-o', '--out', 
-                            metavar='Output Folder', 
-                            type=str, 
-                            required=False, 
-                            default=None,
-                            help="Location to write RNAEditor's output folder. If not passed the location in the config file will be used.")
+        parser.add_argument(
+            '-o', '--out',
+            metavar='Output Folder',
+            type=str,
+            required=False,
+            default=None,
+            help="Location to write RNAEditor's output folder. If not passed the location in the config file will be used."
+        )
 
-        parser.add_argument('-b', '--base',
-                            metavar='Base Name',
-                            type=str,
-                            required=False,
-                            default=None,
-                            help="The base name for the various output files. Highly recomended for command line use.")
- 
+        parser.add_argument(
+            '-b', '--base',
+            metavar='Base Name',
+            type=str,
+            required=False,
+            default=None,
+            help="The base name for the various output files. Highly recomended for command line use."
+        )
 
- 
         args = parser.parse_args()
 
         parameters = Parameters(args.conf)
         
-        # Note: args.out, args.base these overide default output behavior if passed.  
+        # Note: args.out, args.base these override default output behavior if passed.
         edit=RnaEdit(args.input, parameters, 0, out_dir=args.out, out_base=args.base)
  
         edit.start()
