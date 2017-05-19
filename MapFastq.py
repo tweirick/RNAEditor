@@ -201,6 +201,9 @@ class MapFastq(object):
         #Find Quality Score recalibration spots
         recalFile=self.rnaEdit.params.output+".recalSpots.grp"
         cmd=["java","-Xmx16G","-jar",self.rnaEdit.params.sourceDir + "GATK/GenomeAnalysisTK.jar", "-T", "BaseRecalibrator", "-l", "ERROR", "-R", self.rnaEdit.params.refGenome, "-knownSites", self.rnaEdit.params.dbsnp, "-I", realignedFile, "-cov", "CycleCovariate", "-cov", "ContextCovariate", "-o", recalFile]
+
+        print(" ".join(cmd))
+
         Helper.proceedCommand("Find Quality Score recalibration spots", cmd, realignedFile, recalFile, self.rnaEdit)
         
         #proceed Quality Score recalibration

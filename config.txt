@@ -1,0 +1,31 @@
+#This file is used to configure the behaviour of RNAeditor
+
+#Standard input files
+refGenome  = /home/tyler/rnaEditor_annotations/human/GRCH38/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+gtfFile    = /home/tyler/rnaEditor_annotations/human/GRCH38/Homo_sapiens.GRCh38.83.gtf
+dbSNP      = /home/tyler/rnaEditor_annotations/human/GRCH38/dbSNP.vcf
+hapmap     = /home/tyler/rnaEditor_annotations/human/GRCH38/HAPMAP.vcf
+omni       = /home/tyler/rnaEditor_annotations/human/GRCH38/1000GenomeProject.vcf
+esp        = /home/tyler/rnaEditor_annotations/human/GRCH38/ESP.vcf
+aluRegions = /home/tyler/rnaEditor_annotations/human/GRCH38/repeats.bed
+
+output = default
+sourceDir = /usr/local/bin/
+
+threads = 5
+maxDiff = 0.04
+seedDiff = 2
+
+standCall = 1
+standEmit = 1
+
+edgeDistance   = 3
+intronDistance = 5
+
+minPts = 5
+eps    = 50
+
+paired    = True
+keepTemp  = True
+overwrite = False
+

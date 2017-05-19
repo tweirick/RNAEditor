@@ -3,7 +3,7 @@ Created on May 22, 2013
 
 @author: david
 '''
-
+import os
 from datetime import datetime
 import argparse, sys, os, subprocess, errno
 from collections import defaultdict, OrderedDict
@@ -33,7 +33,16 @@ class Parameters():
             self.getParametersFromInputTab(source)
         else:
             Helper.error("Parameter source has wrong Type [str or QWidget]")
+
+    def setOutput(self, outputLocation): 
+        '''
+        When using RNAEditor with a Snakemake pipeline we need to be able to select the output location via command 
+        line. This is a slightly hacky fix to allow use to overide the location specified in the the config file. 
+        '''
+        self.output = outputLocation
+
        
+
     def getParametersFromInputTab(self,inputTab):
         '''
         get the Parameters and update the default Parameters from the Default class 
@@ -450,34 +459,45 @@ class Helper():
         :param output: output prefix from rnaEdit object
         '''
         
-        htmlOutPrefix=stats.outdir+"html/"+stats.sampleName
-        
+        #htmlOutPrefix= stats.outdir + "html/" + stats.sampleName
+        htmlOutPrefix = "html/" # + stats.sampleName
+
         #copy rnaEditor logo to htmlOutPrefix
-        copyfile('ui/icons/rnaEditor_512x512.png',stats.outdir+"html/rnaEditor_512x512.png")
+        try:
+            # This will only work if you run RNAEditor from the folder containing the RNAEditor program. 
+            copyfile('ui/icons/rnaEditor_512x512.png',stats.outdir+"html/rnaEditor_512x512.png")
+        except:
+            try: 
+                copyfile( os.path.dirname(os.path.realpath(__file__)) +"/"+ 'ui/icons/rnaEditor_512x512.png',stats.outdir+"html/rnaEditor_512x512.png")
+            except: 
+                 # Attempts were made... no picture is better than failing. 
+                 pass
         
-        outDict={"title":"Result Page for "+ stats.sampleName,
-                 "sampleName":stats.sampleName,
-                 "icon":stats.outdir+"html/rnaEditor_512x512.png",
-              "baseCounts":htmlOutPrefix+"_baseCounts.png",
-              "editingPositions":htmlOutPrefix+"_EditingPositions.png",
-              "3UTR":htmlOutPrefix+".editedGenes(3UTR).png",
-              "5UTR":htmlOutPrefix+".editedGenes(5UTR).png",
-              "Exon":htmlOutPrefix+".editedGenes(Exon).png",
-              "Intron":htmlOutPrefix+".editedGenes(Intron).png",
-              "Total":htmlOutPrefix+".editedGenes(Total).png",
-              "currentTime":Helper.getTime().strftime("%d.%m.%Y %H:%M"),
-              "totalAluNumber": str(stats.totalAluNumber),
-              "totalNonAluNumber" : str(stats.totalNonAluNumber),
-              "totalNumber": str(stats.totalNumber),
-              "percentageEditing": str(stats.percentageEditing)+"%",
-              "baseCoutHtmlTable": str(stats.baseCountHTMLTable),
-              "editingPositionHTMLTable": str(stats.editingPositionHTMLTable),
-              "utr3HtmlTable":  str(stats.utr3HtmlTable),
-              "utr5HtmlTable": str(stats.utr5HtmlTable),
-              "exonHtmlTable": str(stats.exonHtmlTable),
-              "intronHtmlTable": str(stats.intronHtmlTable),
-              "totalHtmlTable": str(stats.totalHtmlTable)
-              }
+        outDict = {
+            "title":"Result Page for "+ stats.sampleName,
+            "sampleName":stats.sampleName,
+
+            "icon":htmlOutPrefix+"rnaEditor_512x512.png",
+            "baseCounts":htmlOutPrefix+stats.sampleName+"_baseCounts.png",
+            "editingPositions":htmlOutPrefix+stats.sampleName+"_EditingPositions.png",
+            "3UTR":htmlOutPrefix+stats.sampleName+".editedGenes(3UTR).png",
+            "5UTR":htmlOutPrefix+stats.sampleName+".editedGenes(5UTR).png",
+            "Exon":htmlOutPrefix+stats.sampleName+".editedGenes(Exon).png",
+            "Intron":htmlOutPrefix+stats.sampleName+".editedGenes(Intron).png",
+            "Total":htmlOutPrefix+stats.sampleName+".editedGenes(Total).png",
+            "currentTime":Helper.getTime().strftime("%d.%m.%Y %H:%M"),
+            "totalAluNumber": str(stats.totalAluNumber),
+            "totalNonAluNumber" : str(stats.totalNonAluNumber),
+            "totalNumber": str(stats.totalNumber),
+            "percentageEditing": str(stats.percentageEditing)+"%",
+            "baseCoutHtmlTable": str(stats.baseCountHTMLTable),
+            "editingPositionHTMLTable": str(stats.editingPositionHTMLTable),
+            "utr3HtmlTable":  str(stats.utr3HtmlTable),
+            "utr5HtmlTable": str(stats.utr5HtmlTable),
+            "exonHtmlTable": str(stats.exonHtmlTable),
+            "intronHtmlTable": str(stats.intronHtmlTable),
+            "totalHtmlTable": str(stats.totalHtmlTable)
+        }
         
 
         outfile=open(stats.output+".html","w+")
@@ -605,31 +625,31 @@ class Helper():
                     <h3 id='3utr'>3' UTR</h3>
                         <figure>
                             <img src='%(3UTR)s' alt='highly edited genes in 3'UTR'>
-                            <figcaption>Highly edited Genes in 3'UTR Regions</figcaption>
+                            <figcaption>Highly edited genes in 3'UTR regions.</figcaption>
                         </figure>
                         %(utr3HtmlTable)s
                     <h3 id='5utr'>5' UTR</h3>
                         <figure>
                             <img src='%(5UTR)s' alt='highly edited genes in 5'UTR'>
-                            <figcaption>Highly edited Genes in 5'UTR Regions</figcaption>
+                            <figcaption>Highly edited genes in 5'UTR regions.</figcaption>
                         </figure>
                         %(utr5HtmlTable)s
                     <h3 id='exon'>Exons</h3>
                         <figure>
                             <img src='%(Exon)s' alt='highly edited genes in exons'>
-                            <figcaption>Highly edited Genes in Exon Regions</figcaption>
+                            <figcaption>Highly edited genes in exon regions.</figcaption>
                         </figure>
                         %(exonHtmlTable)s
                     <h3 id='intron'>Introns</h3>
                         <figure>
                             <img src='%(Intron)s' alt='highly edited genes in introns'>
-                            <figcaption>Highly edited Genes in Intron Regions</figcaption>
+                            <figcaption>Highly edited genes in intron regions.</figcaption>
                         </figure>
                         %(intronHtmlTable)s
                     <h3 id='total'>Total</h3>
                         <figure>
                             <img src='%(Total)s' alt='highly edited genes (total)'>
-                            <figcaption>Highly edited Genes in 5'UTR Regions</figcaption>
+                            <figcaption>Highly edited genes in all regions.</figcaption>
                         </figure>
                         %(totalHtmlTable)s
             </div>   

@@ -236,11 +236,20 @@ def createDiagramms(output, geneNumber=20,logFile=None,textField=0):
         
         Helper.printResultHtml(stats, logFile, textField)
         
-parser = argparse.ArgumentParser(description='create Diagrams for the output of RNA Editor results')
-parser.add_argument('-o', '--output', metavar='str', type=str, help="output directory and Samplename (Example: '/home/rnaEditor/sample/sample')", required=True)
-parser.add_argument('-n', '--geneNumber', metavar='int', type=int, help='Number of genes shown in the figure', default=20)
-args = parser.parse_args()
+#parser = argparse.ArgumentParser(description='create Diagrams for the output of RNA Editor results')
+#parser.add_argument('-o', '--output', metavar='str', type=str, help="output directory and Samplename (Example: '/home/rnaEditor/sample/sample')", required=True)
+#parser.add_argument('-n', '--geneNumber', metavar='int', type=int, help='Number of genes shown in the figure', default=20)
+#args = parser.parse_args()
 
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='create Diagrams for the output of RNA Editor results')
+    parser.add_argument('-o', '--output', metavar='str', type=str, help="output directory and Samplename (Example: '/home/rnaEditor/sample/sample')", required=True)
+    parser.add_argument('-n', '--geneNumber', metavar='int', type=int, help='Number of genes shown in the figure', default=20)
+    args = parser.parse_args()
+    
     createDiagramms(args.output,args.geneNumber)
+
+
+

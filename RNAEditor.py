@@ -6,6 +6,7 @@
     @author: david
 '''
 
+from createDiagrams import createDiagramms
 from Helper import Helper, Parameters
 from MapFastq import MapFastq
 from CallEditingSites import CallEditingSites
@@ -20,7 +21,7 @@ import subprocess
 
 class RnaEdit(QtCore.QThread):
 
-    def __init__(self, fastqFiles, params, textField):
+    def __init__(self, fastqFiles, params, textField, out_dir=None, out_base=None):
         QtCore.QThread.__init__(self)
         if isinstance(params, Parameters):
             self.params = params
@@ -31,7 +32,6 @@ class RnaEdit(QtCore.QThread):
         else:
             Helper.error("textField has to be Instance of QtGui.QTextEdit or 0")
         
-
         self.fastqFiles=fastqFiles
         
         #hold the running Popen object
@@ -42,9 +42,9 @@ class RnaEdit(QtCore.QThread):
         #hold basic statistic values of the run
         basicStatDict={}
             
-        
         #set directory where the outputFiles should be written to
-        if self.params.output=="default":
+        if self.params.output=="default" and out_dir is None and out_base is None:
+            
             if self.fastqFiles[0].endswith("noDup.realigned.recalibrated.bam"):
                 self.sampleName=fastqFiles[0][fastqFiles[0].rfind("/")+1:fastqFiles[0].rfind(".noDup.realigned.recalibrated.bam")]
                 self.outdir=fastqFiles[0][0:fastqFiles[0].rfind("/")+1]
@@ -52,19 +52,38 @@ class RnaEdit(QtCore.QThread):
                 self.sampleName=fastqFiles[0][fastqFiles[0].rfind("/")+1:fastqFiles[0].rfind(".")]
                 # outdir = /path/to/output/rnaEditor/samplename/
                 self.outdir=fastqFiles[0][0:fastqFiles[0].rfind("/")+1]+"rnaEditor/"+self.sampleName+"/"
-            
+                # An edit to improve command line useability. 
             #output=/path/to/output/rnaEditor/samplename/samplename
-            self.params.output=self.outdir+self.sampleName
-            if not os.path.exists(self.outdir):
-                os.makedirs(self.outdir, mode=0755)
-                os.chmod(self.outdir, 0755)
+        else:
+            # Retaining original behavior just in case I missed something.              
+            if out_base:
+                self.sampleName = out_base
+            else:
+                self.sampleName = fastqFiles[0][fastqFiles[0].rfind("/")+1:fastqFiles[0].rfind(".")]
 
-            #create folder for html output
-            if not os.path.exists(self.outdir+"/html"):
-                os.makedirs(self.outdir+"/html", mode=0755)
-                os.chmod(self.outdir, 0755)
-        
-        
+            # Retaining original behavior just in case I missed something.
+            if out_dir:
+                self.outdir = out_dir    
+            else: 
+                self.outdir = self.params.output.rstrip("/") +"/"
+            
+            #self.sampleName = self.params.output.rstrip("/").split("/")[-1]
+            #self.outdir = self.params.output+"/"+self.sampleName+"/"
+            #self.outdir = self.params.output.rstrip("/") +"/"
+   
+        self.params.output = self.outdir + self.sampleName
+
+        print(self.outdir, self.sampleName, self.params.output)        
+
+        if not os.path.exists(self.outdir):
+            os.makedirs(self.outdir, mode=0755)
+            os.chmod(self.outdir, 0755)
+         
+        #create folder for html output
+        if not os.path.exists(self.outdir+"/html"):
+            os.makedirs(self.outdir+"/html", mode=0755)
+            os.chmod(self.outdir, 0755)
+         
         self.checkDependencies()
         
         #check if the input Files are there
@@ -77,8 +96,8 @@ class RnaEdit(QtCore.QThread):
             Helper.error("RnaEditor Failed",self.logFile,self.textField)
         
         """ At this point the RnaEditor has succesfully finished """
-        cmd=["python",os.getcwd()+"/createDiagrams.py","-o", self.params.output]
-        a=subprocess.call(cmd)
+        #cmd=["python",os.getcwd()+"/createDiagrams.py","-o", self.params.output]
+        #a=subprocess.call(cmd)
         self.emit(QtCore.SIGNAL("taskDone"), self.params.output+".html")
         
     def startAnalysis(self):
@@ -102,17 +121,20 @@ class RnaEdit(QtCore.QThread):
         self.callEditSites=CallEditingSites(mapResultFile,self)
         result = self.callEditSites.startAnalysis()
         
-        
-        
         #finished
-        self.isTerminated=True
-        
-        
-        
+        self.isTerminated=True 
+         
         Helper.status("rnaEditor Finished with %s" % self.params.output, self.logFile, self.textField,"green",True)
         Helper.status("Open %s to see the results" % self.params.output+".html", self.logFile, self.textField,"green",True)
+        
+         
         self.cleanUp()
-    
+
+        cmd=["python", os.path.dirname(os.path.realpath(__file__))+"/createDiagrams.py","-o", self.params.output]
+        a=subprocess.call(cmd)
+   
+
+ 
     def stopSafely(self):
         self.quit()
         Helper.info("Analysis was stopped by User", self.logFile, self.textField)
@@ -299,6 +321,8 @@ def main(argv):
        
 if __name__ == '__main__':
     if len(sys.argv) > 1:
+
+
         parser = argparse.ArgumentParser(
             prog = 'RnaEditor',
             formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -307,19 +331,39 @@ if __name__ == '__main__':
             ----------------------------------------------------------------
                 run without arguments to start the user interface.
             '''))
+
         parser.add_argument('-i', '--input', metavar='Fastq-Files',nargs='+', type=str, help='Input fastq files (maximum two for paired-end sequencing)', required=True)
+
         parser.add_argument('-c', '--conf', metavar='Configuration File', type=str, help='Configuration File used to read Parameters for RnaEditor', required=True, default='configuration.txt')
-        
+
+        parser.add_argument('-o', '--out', 
+                            metavar='Output Folder', 
+                            type=str, 
+                            required=False, 
+                            default=None,
+                            help="Location to write RNAEditor's output folder. If not passed the location in the config file will be used.")
+
+        parser.add_argument('-b', '--base',
+                            metavar='Base Name',
+                            type=str,
+                            required=False,
+                            default=None,
+                            help="The base name for the various output files. Highly recomended for command line use.")
+ 
+
+ 
         args = parser.parse_args()
+
+        parameters = Parameters(args.conf)
         
-        parameters = Parameters(args.conf) 
-        edit=RnaEdit(args.input,parameters,0)
-        
+        # Note: args.out, args.base these overide default output behavior if passed.  
+        edit=RnaEdit(args.input, parameters, 0, out_dir=args.out, out_base=args.base)
+ 
         edit.start()
         edit.wait()
        
-        
         del edit 
+
     else: 
         from ui.GuiView import GuiView
         main(sys.argv)

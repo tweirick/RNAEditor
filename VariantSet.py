@@ -14,6 +14,7 @@ import collections
 import numpy as np
 from random import shuffle
 import sys
+import pysam
 from pysam import Samfile
 from Gene import Gene
 
@@ -790,15 +791,14 @@ class VariantSet(object):
     def __len__(self):
         return len(self.variantDict)
     
-    def removeEdgeMismatches(self,bamFile,minDistance, minBaseQual):
+    def removeEdgeMismatches(self, bamFile, minDistance, minBaseQual):
         startTime=Helper.getTime()
         minDistance=int(minDistance)
         counter=0;j=0  
         num_lines = len(self.variantDict)
         Helper.info(" [%s] remove Missmatches from the first %s bp from read edges" % (startTime.strftime("%c"),str(minDistance)),self.logFile,self.textField)
-        
         bamFile = Samfile(bamFile, "rb")
-        
+        print("pysam_version", pysam.__version__) 
         for varKey in self.variantDict.keys():
             variant = self.variantDict[varKey]
             

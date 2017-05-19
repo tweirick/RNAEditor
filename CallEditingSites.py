@@ -479,7 +479,7 @@ class CallEditingSites(object):
         aluVariants.printClusters(self.rnaEdit.params.output+".editingIslands.bed")
         
         #combine alu and non Alu sites
-        variants=aluVariants+nonAluVariants
+        variants=aluVariants + nonAluVariants
         variants.deleteNonEditingBases()
         
         #print Final tables
